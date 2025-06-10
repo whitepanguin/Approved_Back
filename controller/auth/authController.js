@@ -32,7 +32,7 @@ const localStrategy = async (req, res, next) => {
         {
           email: authenticatedUser.email,
           name: authenticatedUser.name,
-          issuer: "sehwan", // 발급자
+          issuer: "JYL",
         },
         SECRET_KEY,
         {
