@@ -13,7 +13,7 @@ const localStrategy = async (req, res, next) => {
     const info = req.info;
 
     if (error || !authenticatedUser) {
-      return res.status(400).json({
+      res.status(400).json({
         loginSucess: false,
         message: info.message,
       });
@@ -32,7 +32,7 @@ const localStrategy = async (req, res, next) => {
         {
           email: authenticatedUser.email,
           name: authenticatedUser.name,
-          issuer: "JYL", // 발급자
+          issuer: "JYL",
         },
         SECRET_KEY,
         {
@@ -41,18 +41,14 @@ const localStrategy = async (req, res, next) => {
       );
 
       // 화면에 토큰만 보내준다.
-      return res.status(200).json({
+      res.status(200).json({
         message: "로그인 성공하였습니다.",
         loginSuccess: true,
         jwtToken: jwtToken,
       });
-      console.log("로그인 성공");
     });
   } catch (error) {
     console.error("localStrategy error", error);
-    return res
-      .status(500)
-      .json({ message: "서버 오류가 발생했습니다.", error });
   }
 };
 
@@ -62,7 +58,7 @@ const jwtStrategy = async (req, res, next) => {
     const jwtAuthenticateUser = req.user;
     const { password, ...foundUser } = jwtAuthenticateUser;
 
-    return res.json({
+    res.json({
       message: "자동 로그인 성공",
       user: foundUser,
     });
