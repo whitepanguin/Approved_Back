@@ -1,6 +1,7 @@
 import path from "path";
 import User from "../../models/userSchema.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const salt = await bcrypt.genSalt(10);
 
@@ -41,34 +42,37 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   const foundUser = await User.findOne({ email: email }).lean();
-  const validPassword = await bcrypt.compare(password, foundUser.password);
 
-  // 방어 코드, early return
   if (!foundUser) {
-    // 회원이 없으면
     return res.status(409).json("회원이 아닙니다.");
-  } else {
-    // 회원인 상태
-    if (!validPassword) {
-      return res.status(409).json({
-        loginSuccess: false,
-        message: "이메일과 비밀번호를 확인해 주세요.",
-      });
-    }
-    // 아이디와 비밀번호가 일치하는 유저
-    // 1) 회원 정보를 보낸다.
-    const { password, ...currentUser } = foundUser;
-
-    res.status(200).json({
-      loginSuccess: true,
-      message: "로그인 성공하였습니다.",
-      currentUser: {
-        ...currentUser,
-        profile: currentUser.profile || "/images/profile/defaultProfile.jpg", // 프로필 경로 포함
-      },
-    });
-    // 2) JWT(Json Web Token)토큰은 소셜에서 추후 같이 사용.
   }
+
+  const validPassword = await bcrypt.compare(password, foundUser.password);
+  if (!validPassword) {
+    return res.status(409).json({
+      loginSuccess: false,
+      message: "이메일과 비밀번호를 확인해 주세요.",
+    });
+  }
+
+  const { password: pwd, ...currentUser } = foundUser;
+
+  // JWT 토큰 생성 (비밀키는 환경변수로 관리 권장)
+  const token = jwt.sign(
+    { name: currentUser.name, email: currentUser.email, provider: "local" },
+    process.env.JWT_SECRET || "your_jwt_secret_key",
+    { expiresIn: "1h" }
+  );
+
+  res.status(200).json({
+    loginSuccess: true,
+    message: "로그인 성공하였습니다.",
+    currentUser: {
+      ...currentUser,
+      profile: currentUser.profile || "/images/profile/defaultProfile.jpg",
+    },
+    token, // 토큰 포함해서 보내기
+  });
 };
 
 //유저 찾기
