@@ -6,16 +6,26 @@ import User from "../../models/userSchema.js";
 // 로그인 연동 전이므로 userId는 하드코딩 (임시)
 export const getProfile = async (req, res) => {
   try {
-    // const userId = req.user.userId; // 로그인 연동 시
-    const dummyProfile = {
-      userId: "apple",
-      name: "김사과",
-      email: "apple@example.com",
-      phone: "010-1234-5678",
-      businessType: "IT업",
-      joinDate: "2024.01.01",
+    console.log("🟢 req.user:", req.user);
+    const userId = req.user.userid;
+
+    const user = await User.findOne({ userid: userId }).lean();
+    if (!user) {
+      return res.status(404).json({ message: "유저 없음" });
+    }
+
+    const profile = {
+      userId: user.userId,
+      name: user.name,
+      email: user.email,
+      phone: user.phone || "",
+      businessType: user.businessType || "",
+      joinDate: user.createdAt
+        ? new Date(user.createdAt).toISOString().split("T")[0]
+        : "",
     };
-    res.status(200).json(dummyProfile);
+
+    res.status(200).json(profile);
   } catch (error) {
     console.error("프로필 불러오기 실패:", error);
     res.status(500).json({ message: "서버 오류" });
