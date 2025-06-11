@@ -10,7 +10,7 @@ const userSchema = new Schema(
     birthDate: { type: Number }, //생일
     address: { type: String }, //주소
     profile: { type: String, default: "" }, //프로필
-    provider: { type: String },
+    provider: { type: String, default: "local" },
     createdAt: { type: String, default: getCurrentTime },
     updatedAt: { type: String, default: getCurrentTime },
   },

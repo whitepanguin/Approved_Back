@@ -43,7 +43,6 @@ const passportVerify = async (email, password, done) => {
     return done(null, foundUser);
   } catch (error) {
     console.error("passportVerify error", error);
-    return done(error);
   }
 };
 
@@ -134,7 +133,7 @@ const kakaoConfig = {
 const kakaoVerify = async (accessToken, refreshToken, profile, done) => {
   const { username, provider, _json } = profile;
   const pickture = _json.properties.profile_image;
-  const userid = _json.properties.userid;
+  const nickname = _json.properties.nickname;
   const email = _json.kakao_account.email;
 
   try {
@@ -145,7 +144,7 @@ const kakaoVerify = async (accessToken, refreshToken, profile, done) => {
     const jwtToken = jwt.sign(
       {
         email: email,
-        issuer: "JYL",
+        issuer: "sehwan",
       },
       SECRET_KEY,
       {
@@ -163,7 +162,7 @@ const kakaoVerify = async (accessToken, refreshToken, profile, done) => {
       const createdUser = await User.create({
         email: email,
         name: username,
-        userid: userid,
+        nickname: nickname,
         provider: provider,
         profile: pickture,
       });
@@ -188,7 +187,7 @@ const naverConfig = {
 };
 
 const naverVerify = async (accessToken, refreshToken, profile, done) => {
-  const { provider, userid, name, email, profileImage } = profile;
+  const { provider, nickname, name, email, profileImage } = profile;
 
   try {
     // db에 회원이 있는지 조회
@@ -216,7 +215,7 @@ const naverVerify = async (accessToken, refreshToken, profile, done) => {
       const createdUser = await User.create({
         email: email,
         name: name,
-        userid: userid,
+        nickName: nickname,
         provider: provider,
         profile: profileImage,
       });

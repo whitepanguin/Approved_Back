@@ -1,6 +1,7 @@
 import path from "path";
 import User from "../../models/userSchema.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const salt = await bcrypt.genSalt(10);
 
@@ -62,10 +63,7 @@ const login = async (req, res) => {
     res.status(200).json({
       loginSuccess: true,
       message: "로그인 성공하였습니다.",
-      currentUser: {
-        ...currentUser,
-        profile: currentUser.profile || "/images/profile/defaultProfile.jpg", // 프로필 경로 포함
-      },
+      currentUser: currentUser,
     });
     // 2) JWT(Json Web Token)토큰은 소셜에서 추후 같이 사용.
   }
