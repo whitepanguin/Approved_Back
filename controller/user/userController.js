@@ -204,7 +204,6 @@ const remove = async (req, res) => {
   res.status(200).json({
     updateSuccess: true,
     message: "회원탈퇴 완료. 다음생에 만나요",
-    currentUser: updatedUser,
   });
 };
 
