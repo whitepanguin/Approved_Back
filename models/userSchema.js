@@ -8,6 +8,8 @@ const userSchema = new Schema(
     name: { type: String }, //이름
     userid: { type: String }, //닉네임
     birthDate: { type: Number }, //생일
+    phone: { type: String },
+    businessType: { type: String, default: "" },
     address: { type: String }, //주소
     profile: { type: String, default: "" }, //프로필
     provider: { type: String, default: "local" },
