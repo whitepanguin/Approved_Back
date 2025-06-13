@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { getCurrentTime } from "../utils/utils.js";
+// import { getCurrentTime } from "../utils/utils.js";
 
 const userSchema = new Schema(
   {
@@ -13,8 +13,8 @@ const userSchema = new Schema(
     address: { type: String }, //주소
     profile: { type: String, default: "" }, //프로필
     provider: { type: String, default: "local" },
-    createdAt: { type: String, default: getCurrentTime },
-    updatedAt: { type: String, default: getCurrentTime },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

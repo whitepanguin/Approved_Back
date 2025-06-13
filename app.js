@@ -82,6 +82,11 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // 💡 정적 파일 제공 경로
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// ✨ 모든 요청 로깅 (임시)
+app.use((req, res, next) => {
+  console.log(`🌐 ${req.method} ${req.originalUrl}`);
+  next();
+});
 // 💡 라우터 설정 및 Multer 연동
 
 app.use("/", rootRouter);

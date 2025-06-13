@@ -68,6 +68,11 @@ userRouter.post(
   upload.array("imageUrls", 5),
   certifyRequest
 ); // 💡 강사 인증 요청
+userRouter.post(
+  "/certifyRequest",
+  upload.array("imageUrls", 5),
+  certifyRequest
+); // 💡 강사 인증 요청
 userRouter.get("/allUsers", getAllUsers);
 
 // ✅ [추가] 닉네임 중복 확인 라우터
