@@ -42,31 +42,31 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   const foundUser = await User.findOne({ email: email }).lean();
-  const validPassword = await bcrypt.compare(password, foundUser.password);
 
-  // 방어 코드, early return
+  // 1. 먼저 유저 존재 여부 확인
   if (!foundUser) {
-    // 회원이 없으면
-    return res.status(409).json("회원이 아닙니다.");
-  } else {
-    // 회원인 상태
-    if (!validPassword) {
-      return res.status(409).json({
-        loginSuccess: false,
-        message: "이메일과 비밀번호를 확인해 주세요.",
-      });
-    }
-    // 아이디와 비밀번호가 일치하는 유저
-    // 1) 회원 정보를 보낸다.
-    const { password, ...currentUser } = foundUser;
-
-    res.status(200).json({
-      loginSuccess: true,
-      message: "로그인 성공하였습니다.",
-      currentUser: currentUser,
+    return res.status(409).json({
+      loginSuccess: false,
+      message: "회원이 아닙니다.",
     });
-    // 2) JWT(Json Web Token)토큰은 소셜에서 추후 같이 사용.
   }
+
+  // 2. 비밀번호 확인은 그 다음
+  const validPassword = await bcrypt.compare(password, foundUser.password);
+  if (!validPassword) {
+    return res.status(409).json({
+      loginSuccess: false,
+      message: "이메일과 비밀번호를 확인해 주세요.",
+    });
+  }
+
+  // 3. 로그인 성공
+  const { password: pw, ...currentUser } = foundUser;
+  res.status(200).json({
+    loginSuccess: true,
+    message: "로그인 성공하였습니다.",
+    currentUser: currentUser,
+  });
 };
 
 //유저 찾기
@@ -330,6 +330,23 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+const usercount = async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    res.status(200).json({
+      success: true,
+      message: "유저 수 조회 성공",
+      count: count,
+    });
+  } catch (error) {
+    console.error("유저 수 조회 오류:", error);
+    res.status(500).json({
+      success: false,
+      message: "서버 오류로 유저 수를 조회할 수 없습니다.",
+    });
+  }
+};
+
 export {
   register,
   login,
@@ -341,4 +358,5 @@ export {
   findPassword,
   updatePassword,
   certifyRequest,
+  usercount,
 };

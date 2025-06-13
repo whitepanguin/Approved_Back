@@ -9,10 +9,23 @@ const authRouter = express.Router();
 const clientURL = "http://localhost:3000";
 
 // 로컬 로그인
+/*
 authRouter.post(
   "/local",
   passport.authenticate("local", { session: false }),
   localStrategy
+);
+*/
+authRouter.post(
+  "/local",
+  passport.authenticate("local", { session: false, failWithError: true }),
+  localStrategy,
+  (err, req, res, next) => {
+    res.status(401).json({
+      loginSuccess: false,
+      message: "이메일 또는 비밀번호가 잘못되었습니다.",
+    });
+  }
 );
 
 // jwt 토큰

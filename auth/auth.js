@@ -144,7 +144,7 @@ const kakaoVerify = async (accessToken, refreshToken, profile, done) => {
     const jwtToken = jwt.sign(
       {
         email: email,
-        issuer: "sehwan",
+        issuer: "JYL",
       },
       SECRET_KEY,
       {
@@ -197,7 +197,7 @@ const naverVerify = async (accessToken, refreshToken, profile, done) => {
     const jwtToken = jwt.sign(
       {
         email: email,
-        issuer: "sehwan",
+        issuer: "JYL",
       },
       SECRET_KEY,
       {
