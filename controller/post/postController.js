@@ -1,4 +1,5 @@
 import Post from "../../models/postSchema.js";
+import Like from "../../models/likeSchema.js";
 
 // 전체 게시글 가져오기
 export const getAllPosts = async (req, res) => {
@@ -46,6 +47,18 @@ export const getPostById = async (req, res) => {
   }
 };
 
+// 내가 쓴 글 목록
+export const getPostsByUser = async (req, res) => {
+  const { email } = req.params; // URL = /posts/user/테스트
+  try {
+    const posts = await Post.find({ email }).sort({ createdAt: -1 });
+    res.status(200).json(posts);
+  } catch (err) {
+    console.error("내 글 불러오기 실패:", err);
+    res.status(500).json({ error: "내 글 조회 실패" });
+  }
+};
+
 // 작성글 수 로직
 export const getPostCountByUser = async (req, res) => {
   const { userid } = req.params;
@@ -57,6 +70,7 @@ export const getPostCountByUser = async (req, res) => {
     res.status(500).json({ error: "서버 오류" });
   }
 };
+
 
 // 게시글 삭제
 export const deletePost = async (req, res) => {
@@ -129,5 +143,6 @@ export const getCategoryCommentsCounts = async (req, res) => {
   } catch (err) {
     console.error("❌ 카테고리 댓글 수 계산 오류:", err);
     res.status(500).json({ error: "서버 오류" });
+
   }
 };

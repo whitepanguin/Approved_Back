@@ -115,7 +115,8 @@ const findPassword = async (req, res) => {
 // 회원정보 수정
 const modify = async (req, res) => {
   try {
-    const { email, name, userid, address, birthDate } = req.body;
+    const { email, name, userid, address, birthDate, phone, businessType } =
+      req.body;
 
     // 📌 이메일 필수 체크
     if (!email) {
@@ -137,8 +138,10 @@ const modify = async (req, res) => {
     // 📌 업데이트 데이터 구성
     const updateData = {};
     if (name) updateData.name = name;
+    if (phone) updateData.phone = phone;
     if (userid) updateData.userid = userid;
     if (address) updateData.address = address;
+    if (businessType) updateData.businessType = businessType;
     if (birthDate) updateData.birthDate = Number(birthDate); // ✅ 숫자 변환
     updateData.updatedAt = new Date().toISOString(); // ✅ 업데이트 시간 갱신
 
@@ -201,7 +204,6 @@ const remove = async (req, res) => {
   res.status(200).json({
     updateSuccess: true,
     message: "회원탈퇴 완료. 다음생에 만나요",
-    currentUser: updatedUser,
   });
 };
 

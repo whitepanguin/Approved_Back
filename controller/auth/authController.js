@@ -54,6 +54,7 @@ const localStrategy = async (req, res, next) => {
 
 const jwtStrategy = async (req, res, next) => {
   try {
+    console.log("🟡 JWT 인증 유저:", req.user);
     // 인가된 유저의 정보가 req.user에 담겨서 온다.
     const jwtAuthenticateUser = req.user;
     const { password, ...foundUser } = jwtAuthenticateUser;

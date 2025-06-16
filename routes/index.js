@@ -3,6 +3,7 @@ import { index } from "../controller/index.js";
 import userRouter from "./user/userRouter.js";
 import authRouter from "./auth/authRouter.js";
 import postRouter from "./post/postRouter.js";
+import commentRouter from "./comment/commentRouter.js";
 
 const rootRouter = express.Router();
 
@@ -10,5 +11,6 @@ rootRouter.get("/", index);
 rootRouter.use("/users", userRouter);
 rootRouter.use("/auth", authRouter);
 rootRouter.use("/posts", postRouter);
+rootRouter.use("/comments", commentRouter);
 
 export default rootRouter;
