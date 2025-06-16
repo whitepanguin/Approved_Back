@@ -71,90 +71,78 @@ export const getPostCountByUser = async (req, res) => {
   }
 };
 
-// 좋아요
-export const toggleLike = async (req, res) => {
+
+// 게시글 삭제
+export const deletePost = async (req, res) => {
   try {
-    const { postId } = req.params;
-    const userid = req.user.userid; // ✅ JWT 미들웨어에서 전달된 유저 ID
-
-    // 🔍 해당 유저가 이미 해당 게시글에 좋아요를 눌렀는지 확인
-    const foundLike = await Like.findOne({ postId, userid });
-
-    let updatedPost;
-
-    if (foundLike) {
-      // ✅ 이미 좋아요 누른 경우 → 취소 처리
-      await Like.deleteOne({ _id: foundLike._id });
-      updatedPost = await Post.findByIdAndUpdate(
-        postId,
-        { $inc: { likes: -1 } },
-        { new: true }
-      );
-
-      return res.status(200).json({
-        liked: false,
-        likes: updatedPost.likes,
-      });
+    const deleted = await Post.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ error: "게시글을 찾을 수 없습니다." });
     }
-
-    // ✅ 좋아요 안 누른 경우 → 등록 처리
-    await Like.create({ postId, userid });
-    updatedPost = await Post.findByIdAndUpdate(
-      postId,
-      { $inc: { likes: 1 } },
-      { new: true }
-    );
-
-    return res.status(200).json({
-      liked: true,
-      likes: updatedPost.likes,
-    });
+    res.status(200).json({ message: "삭제 성공" });
   } catch (err) {
-    console.error("❌ 좋아요 처리 실패:", err);
-    res.status(500).json({ error: "좋아요 처리 중 오류 발생" });
+    console.error("❌ 게시글 삭제 오류:", err);
+    res.status(500).json({ error: "서버 오류" });
   }
 };
 
-// 좋아요 누른 글
-export const getPostsLikedByUser = async (req, res) => {
-  const { userid } = req.params; // URL = /posts/liked/:userid
-
+// 게시글 수정
+export const updatePost = async (req, res) => {
   try {
-    // 1) Like 컬렉션에서 내가 누른 postId 목록 찾기
-    const liked = await Like.find({ userid }).select("postId");
-    const postIds = liked.map((l) => l.postId);
-
-    // 2) 그 postId 들로 실제 게시글 조회
-    const posts = await Post.find({ _id: { $in: postIds } }).sort({
-      createdAt: -1,
+    const updated = await Post.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, // 수정된 내용 반환
     });
-
-    res.status(200).json(posts);
+    if (!updated) {
+      return res.status(404).json({ error: "게시글을 찾을 수 없습니다." });
+    }
+    res.status(200).json(updated);
   } catch (err) {
-    console.error("좋아요한 글 불러오기 실패:", err);
-    res.status(500).json({ error: "좋아요한 글 조회 실패" });
+    console.error("❌ 게시글 수정 오류:", err);
+    res.status(500).json({ error: "서버 오류" });
   }
 };
-// 조회수 증가가
-export const incrementView = async (req, res) => {
-  try {
-    const { postId } = req.params;
 
-    // ① 전체 조회수 +1
-    // ② 오늘 조회수 +1
-    const updated = await Post.findByIdAndUpdate(
-      postId,
+// 카테고리별 게시글 수
+export const getCategoryCounts = async (req, res) => {
+  try {
+    const counts = await Post.aggregate([
       {
-        $inc: { views: 1, todayViews: 1 },
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 },
+        },
       },
-      { new: true }
-    );
+    ]);
 
-    if (!updated) return res.status(404).json({ error: "Post not found" });
+    // 결과를 객체로 변환 (ex: { info: 12, qna: 5, ... })
+    const result = {};
+    counts.forEach((item) => {
+      result[item._id] = item.count;
+    });
 
-    res.status(200).json({ views: updated.views });
+    res.status(200).json(result);
   } catch (err) {
-    console.error("조회수 증가 실패:", err);
-    res.status(500).json({ error: "조회수 처리 실패" });
+    console.error("❌ 카테고리별 게시글 수 집계 실패:", err);
+    res.status(500).json({ error: "서버 오류" });
+  }
+};
+
+// 카테고리 댓글&게시글 연결
+export const getCategoryCommentsCounts = async (req, res) => {
+  try {
+    const posts = await Post.find();
+
+    const counts = posts.reduce((acc, post) => {
+      const category = post.category;
+      const commentCount = post.comments || 0;
+      acc[category] = (acc[category] || 0) + commentCount;
+      return acc;
+    }, {});
+
+    res.json(counts);
+  } catch (err) {
+    console.error("❌ 카테고리 댓글 수 계산 오류:", err);
+    res.status(500).json({ error: "서버 오류" });
+
   }
 };
