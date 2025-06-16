@@ -1,4 +1,5 @@
 import Post from "../../models/postSchema.js";
+import Like from "../../models/likeSchema.js";
 
 // 전체 게시글 가져오기
 export const getAllPosts = async (req, res) => {
@@ -46,6 +47,18 @@ export const getPostById = async (req, res) => {
   }
 };
 
+// 내가 쓴 글 목록
+export const getPostsByUser = async (req, res) => {
+  const { email } = req.params; // URL = /posts/user/테스트
+  try {
+    const posts = await Post.find({ email }).sort({ createdAt: -1 });
+    res.status(200).json(posts);
+  } catch (err) {
+    console.error("내 글 불러오기 실패:", err);
+    res.status(500).json({ error: "내 글 조회 실패" });
+  }
+};
+
 // 작성글 수 로직
 export const getPostCountByUser = async (req, res) => {
   const { userid } = req.params;
@@ -55,5 +68,93 @@ export const getPostCountByUser = async (req, res) => {
   } catch (err) {
     console.error("작성글 수 조회 실패:", err);
     res.status(500).json({ error: "서버 오류" });
+  }
+};
+
+// 좋아요
+export const toggleLike = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userid = req.user.userid; // ✅ JWT 미들웨어에서 전달된 유저 ID
+
+    // 🔍 해당 유저가 이미 해당 게시글에 좋아요를 눌렀는지 확인
+    const foundLike = await Like.findOne({ postId, userid });
+
+    let updatedPost;
+
+    if (foundLike) {
+      // ✅ 이미 좋아요 누른 경우 → 취소 처리
+      await Like.deleteOne({ _id: foundLike._id });
+      updatedPost = await Post.findByIdAndUpdate(
+        postId,
+        { $inc: { likes: -1 } },
+        { new: true }
+      );
+
+      return res.status(200).json({
+        liked: false,
+        likes: updatedPost.likes,
+      });
+    }
+
+    // ✅ 좋아요 안 누른 경우 → 등록 처리
+    await Like.create({ postId, userid });
+    updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      { $inc: { likes: 1 } },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      liked: true,
+      likes: updatedPost.likes,
+    });
+  } catch (err) {
+    console.error("❌ 좋아요 처리 실패:", err);
+    res.status(500).json({ error: "좋아요 처리 중 오류 발생" });
+  }
+};
+
+// 좋아요 누른 글
+export const getPostsLikedByUser = async (req, res) => {
+  const { userid } = req.params; // URL = /posts/liked/:userid
+
+  try {
+    // 1) Like 컬렉션에서 내가 누른 postId 목록 찾기
+    const liked = await Like.find({ userid }).select("postId");
+    const postIds = liked.map((l) => l.postId);
+
+    // 2) 그 postId 들로 실제 게시글 조회
+    const posts = await Post.find({ _id: { $in: postIds } }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json(posts);
+  } catch (err) {
+    console.error("좋아요한 글 불러오기 실패:", err);
+    res.status(500).json({ error: "좋아요한 글 조회 실패" });
+  }
+};
+// 조회수 증가가
+export const incrementView = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    // ① 전체 조회수 +1
+    // ② 오늘 조회수 +1
+    const updated = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $inc: { views: 1, todayViews: 1 },
+      },
+      { new: true }
+    );
+
+    if (!updated) return res.status(404).json({ error: "Post not found" });
+
+    res.status(200).json({ views: updated.views });
+  } catch (err) {
+    console.error("조회수 증가 실패:", err);
+    res.status(500).json({ error: "조회수 처리 실패" });
   }
 };

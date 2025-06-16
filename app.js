@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import rootRouter from "./routes/index.js";
 import passport from "passport";
 import { initializePassport } from "./auth/auth.js";
+import commentRoutes from "./routes/comment/commentRouter.js";
 
 //이미지 등록
 import multer from "multer";
@@ -26,7 +27,7 @@ const port = 8000;
 app.use(
   cors({
     origin: "*", // 모든 도메인 허용 (개발 환경)
-    methods: ["GET", "POST", "DELETE", "PUT"], // 허용할 HTTP 메서드
+    methods: ["GET", "POST", "DELETE", "PUT", "PATCH"], // 허용할 HTTP 메서드
     credentials: true, // 인증 정보 포함 여부
   })
 );
@@ -73,6 +74,8 @@ const getDynamicStorage = () => {
 
 const upload = multer({ storage: getDynamicStorage() });
 
+app.use("/comments", commentRoutes);
+
 // 정적 파일 및 라우터 설정
 app.use(express.json()); // JSON 요청 허용
 app.use(express.urlencoded({ extended: true })); // URL 인코딩된 데이터 허용
@@ -82,6 +85,11 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // 💡 정적 파일 제공 경로
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// ✨ 모든 요청 로깅 (임시)
+app.use((req, res, next) => {
+  console.log(`🌐 ${req.method} ${req.originalUrl}`);
+  next();
+});
 // 💡 라우터 설정 및 Multer 연동
 
 app.use("/", rootRouter);

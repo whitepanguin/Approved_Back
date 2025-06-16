@@ -16,6 +16,7 @@ import {
 } from "../../controller/user/userController.js";
 import multer from "multer";
 import fs from "fs";
+import User from "../../models/userSchema.js";
 
 // 💡 __dirname 대체 정의
 const __filename = fileURLToPath(import.meta.url);
@@ -55,6 +56,7 @@ const upload = multer({ storage: getDynamicStorage() });
 userRouter.post("/register", register);
 userRouter.post("/login", login);
 userRouter.put("/modify", modify);
+userRouter.put("/profile", modify);
 userRouter.delete("/remove", remove);
 userRouter.post("/picture", upload.single("picture"), updatePicture); // 💡 프로필 사진 변경
 userRouter.get("/getUserInfo", getUserInfo);
@@ -66,5 +68,26 @@ userRouter.post(
   upload.array("imageUrls", 5),
   certifyRequest
 ); // 💡 강사 인증 요청
+userRouter.post(
+  "/certifyRequest",
+  upload.array("imageUrls", 5),
+  certifyRequest
+); // 💡 강사 인증 요청
 userRouter.get("/allUsers", getAllUsers);
+
+// ✅ [추가] 닉네임 중복 확인 라우터
+userRouter.get("/check-duplicate", async (req, res) => {
+  try {
+    const { userid } = req.query;
+    if (!userid) {
+      return res.status(400).json({ message: "닉네임이 필요합니다." });
+    }
+
+    const exists = await User.findOne({ userid }).lean();
+    res.status(200).json({ exists: !!exists });
+  } catch (err) {
+    console.error("❌ 닉네임 중복확인 실패:", err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
 export default userRouter;
