@@ -12,7 +12,6 @@ const postSchema = new Schema(
     tags: [{ type: String }], // 태그 배열
 
     views: { type: Number, default: 0 },
-    todayViews: { type: Number, default: 0 },
     comments: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
     preview: { type: String },

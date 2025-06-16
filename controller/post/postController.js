@@ -57,3 +57,77 @@ export const getPostCountByUser = async (req, res) => {
     res.status(500).json({ error: "서버 오류" });
   }
 };
+
+// 게시글 삭제
+export const deletePost = async (req, res) => {
+  try {
+    const deleted = await Post.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ error: "게시글을 찾을 수 없습니다." });
+    }
+    res.status(200).json({ message: "삭제 성공" });
+  } catch (err) {
+    console.error("❌ 게시글 삭제 오류:", err);
+    res.status(500).json({ error: "서버 오류" });
+  }
+};
+
+// 게시글 수정
+export const updatePost = async (req, res) => {
+  try {
+    const updated = await Post.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, // 수정된 내용 반환
+    });
+    if (!updated) {
+      return res.status(404).json({ error: "게시글을 찾을 수 없습니다." });
+    }
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error("❌ 게시글 수정 오류:", err);
+    res.status(500).json({ error: "서버 오류" });
+  }
+};
+
+// 카테고리별 게시글 수
+export const getCategoryCounts = async (req, res) => {
+  try {
+    const counts = await Post.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // 결과를 객체로 변환 (ex: { info: 12, qna: 5, ... })
+    const result = {};
+    counts.forEach((item) => {
+      result[item._id] = item.count;
+    });
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("❌ 카테고리별 게시글 수 집계 실패:", err);
+    res.status(500).json({ error: "서버 오류" });
+  }
+};
+
+// 카테고리 댓글&게시글 연결
+export const getCategoryCommentsCounts = async (req, res) => {
+  try {
+    const posts = await Post.find();
+
+    const counts = posts.reduce((acc, post) => {
+      const category = post.category;
+      const commentCount = post.comments || 0;
+      acc[category] = (acc[category] || 0) + commentCount;
+      return acc;
+    }, {});
+
+    res.json(counts);
+  } catch (err) {
+    console.error("❌ 카테고리 댓글 수 계산 오류:", err);
+    res.status(500).json({ error: "서버 오류" });
+  }
+};
