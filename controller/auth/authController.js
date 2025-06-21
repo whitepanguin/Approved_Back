@@ -19,6 +19,8 @@ const localStrategy = async (req, res, next) => {
       });
     }
 
+    console.log(user);
+
     // 로그인 처리
     req.login(authenticatedUser, { session: false }, async (loginError) => {
       // 오류가 있다면
